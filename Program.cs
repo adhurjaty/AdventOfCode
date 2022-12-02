@@ -4,8 +4,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var inputText = File.ReadAllText(@"./input.txt");
-        var solution = Day1.Part2(inputText);
+        var solution = new Day1.Solver().Part2();
         Console.WriteLine(solution);
     }
 }

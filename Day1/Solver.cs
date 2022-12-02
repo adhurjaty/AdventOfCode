@@ -1,22 +1,24 @@
-namespace AdventOfCode;
+namespace AdventOfCode.Day1;
 
-public static class Day1
+public class Solver
 {
-    public static int Part1(string inputText)
+    private readonly string _inputText = File.ReadAllText(@"./Day1/input.txt");
+
+    public int Part1()
     {
-        return SumGroups(inputText)
+        return SumGroups(_inputText)
             .Max();
     }
 
-    public static int Part2(string inputText)
+    public int Part2()
     {
-        return SumGroups(inputText)
+        return SumGroups(_inputText)
             .OrderByDescending(x => x)
             .Take(3)
             .Sum();
     }
 
-    private static IEnumerable<int> SumGroups(string inputText)
+    private IEnumerable<int> SumGroups(string inputText)
     {
         return inputText
             .Split("\n\n")
