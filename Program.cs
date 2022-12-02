@@ -4,7 +4,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var solution = new Day2.Solver().Part2();
-        Console.WriteLine(solution);
+        Console.WriteLine(new Day2.Solver().Part1());
+        Console.WriteLine(new Day2.Solver().Part2());
     }
 }
