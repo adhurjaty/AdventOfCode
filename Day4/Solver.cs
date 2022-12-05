@@ -1,3 +1,5 @@
+using AdventOfCode.Util;
+
 namespace AdventOfCode.Day4;
 
 public class Solver
@@ -24,20 +26,5 @@ public class Solver
                 .OrderBy(range => range.Item1)
                 .ThenByDescending(range => range.Item2)
                 .ToTuple());
-    }
-}
-
-public static class EnumerableExtensions
-{
-    public static (T, T) ToTuple<T>(this IEnumerable<T> lst)
-    {
-        try
-        {
-            return (lst.First(), lst.Skip(1).First());
-        }
-        catch (InvalidOperationException)
-        {
-            throw new Exception("List is too short");
-        }
     }
 }
