@@ -13,14 +13,19 @@ public class Solver
     public Solver()
     {
         var lines = File.ReadLines(@"./Day5/input.txt");
-        var numStacks = lines
+        var parts = lines.SplitParts(
+            x => Regex.IsMatch(x, @"^\s*\["),
+            x => Regex.IsMatch(x, @"^\s*\d+"),
+            x => x.StartsWith("move")
+        );
+        var numStacks = parts[1]
             .Select(line => Regex.Matches(line, @"\d+"))
             .Where(matches => matches.Any())
             .Select(matches => int.Parse(matches.Last().Value))
             .First();
 
-        _stacks = ConstructStacks(lines, numStacks);
-        _instructions = lines
+        _stacks = ConstructStacks(parts[0], numStacks);
+        _instructions = parts[2]
             .Select(line => Regex.Match(line, @"move (\d+) from (\d+) to (\d+)"))
             .Where(match => match.Success)
             .Select(match => new Instruction
@@ -37,9 +42,7 @@ public class Solver
             .Select(_ => new Stack<string>())
             .ToArray();
 
-        var stackInput = lines
-            .WhereStart(line => Regex.IsMatch(line, @"^\s*\["))
-            .Reverse();
+        var stackInput = lines.Reverse();
 
         foreach (var row in stackInput)
         {

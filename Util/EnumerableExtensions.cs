@@ -23,4 +23,34 @@ public static class EnumerableExtensions
             yield return item;
         }
     }
+
+    public static IEnumerable<T>[] SplitParts<T>(this IEnumerable<T> lst,
+        params Func<T, bool>[] preds)
+    {
+        var e = lst.GetEnumerator();
+        if (!e.MoveNext())
+            throw new ArgumentNullException();
+
+        // maximal lazy implementation that doesn't cause issues when accessing by index
+        return preds.Take(preds.Length - 1)
+            .Select(pred => GetPart(e, pred).ToArray())
+            .Concat(new[] { GetPart(e, preds[preds.Length - 1]) })
+            .ToArray();
+    }
+
+    private static IEnumerable<T> GetPart<T>(IEnumerator<T> e, Func<T, bool> pred)
+    {
+        bool hasFound = false;
+        do
+        {
+            bool isMatch = pred(e.Current);
+            if (isMatch)
+            {
+                hasFound = true;
+                yield return e.Current;
+            }
+            if (!isMatch && hasFound)
+                break;
+        } while (e.MoveNext());
+    }
 }
