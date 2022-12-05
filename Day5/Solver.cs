@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AdventOfCode.Util;
 
 namespace AdventOfCode.Day5;
 
@@ -37,7 +38,7 @@ public class Solver
             .ToArray();
 
         var stackInput = lines
-            .Where(line => Regex.IsMatch(line, @"^\s*\["))
+            .WhereStart(line => Regex.IsMatch(line, @"^\s*\["))
             .Reverse();
 
         foreach (var row in stackInput)
@@ -54,33 +55,28 @@ public class Solver
 
     public string Part1()
     {
-        MoveBoxes(instruction =>
-        {
-            return Enumerable.Range(0, instruction.Number)
-                .Select(_ => _stacks[instruction.SrcStack - 1].Pop());
-        });
+        MoveBoxes(false);
 
         return GetStackTops();
     }
 
     public string Part2()
     {
-        MoveBoxes(instruction =>
-        {
-            return Enumerable.Range(0, instruction.Number)
-                .Select(_ => _stacks[instruction.SrcStack - 1].Pop())
-                .Chunk(3)
-                .SelectMany(chunk => chunk.Reverse());
-        });
+        MoveBoxes(true);
 
         return GetStackTops();
     }
 
-    private void MoveBoxes(Func<Instruction, IEnumerable<string>> moveFn)
+    private void MoveBoxes(bool canPickUpMultiple)
     {
         foreach (var instruction in _instructions)
         {
-            foreach(var block in moveFn(instruction))
+            var toMove = Enumerable.Range(0, instruction.Number)
+                .Select(_ => _stacks[instruction.SrcStack - 1].Pop());
+            if (canPickUpMultiple)
+                toMove = toMove.Reverse();
+
+            foreach(var block in toMove)
             {
                 _stacks[instruction.DestStack - 1].Push(block);
             }
