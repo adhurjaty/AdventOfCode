@@ -53,4 +53,18 @@ public static class EnumerableExtensions
                 break;
         } while (e.MoveNext());
     }
+
+    public static IEnumerable<T[]> SlidingBuffer<T>(this IEnumerable<T> lst, int size)
+    {
+        var outArr = lst.Take(size).ToArray();
+        yield return outArr;
+
+        var e = lst.Skip(size).GetEnumerator();
+
+        while (e.MoveNext())
+        {
+            outArr = outArr.Skip(1).Concat(new[] { e.Current }).ToArray();
+            yield return outArr;
+        }
+    }
 }
