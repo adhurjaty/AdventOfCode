@@ -4,20 +4,19 @@ namespace AdventOfCode.Day7;
 
 public class Solver
 {
+    private const int TOTAL_SPACE = 70000000;
+    private const int SPACE_NEEDED = 30000000;
+
     private readonly IEnumerable<string> _lines = File.ReadLines(@"./Day7/input.txt");
 
-    private TreeDirectory _currentDirectory = new TreeDirectory()
+    private readonly Filesystem _fs = new Filesystem(new TreeDirectory()
     {
         Name = "/"
-    };
-    private TreeDirectory _root;
-
+    });
     private List<DirectorySize> _directorySizes = new List<DirectorySize>();
 
     public Solver()
     {
-        _root = _currentDirectory;
-
         var e = _lines.GetEnumerator();
         e.MoveNext();
         BuildDirectoryTree(e);
@@ -50,12 +49,7 @@ public class Solver
 
     private string ChangeDirCommand(string name, IEnumerator<string> e)
     {
-        if (name == "..")
-            _currentDirectory = _currentDirectory.Parent;
-        else
-            _currentDirectory = _currentDirectory.Directories.First(x => x.Name == name);
-
-        if (_currentDirectory is null) throw new Exception($"null {name} directory");
+        _fs.Cd(name);
         e.MoveNext();
         return e.Current;
     }
@@ -68,22 +62,13 @@ public class Solver
             var match = Regex.Match(lsOutput, @"(\d+) (.*)");
             if (match.Success)
             {
-                _currentDirectory.Files.Add(new TreeFile
-                (
-                    Name: match.Groups[2].Value,
-                    Size: int.Parse(match.Groups[1].Value),
-                    Parent: _currentDirectory
-                ));
+                _fs.Touch(match.Groups[2].Value, int.Parse(match.Groups[1].Value));
                 continue;
             }
             match = Regex.Match(lsOutput, @"dir (.*)");
             if (match.Success)
             {
-                _currentDirectory.Directories.Add(new TreeDirectory()
-                {
-                    Name = match.Groups[1].Value,
-                    Parent = _currentDirectory
-                });
+                _fs.MkDir(match.Groups[1].Value);
                 continue;
             }
         }
@@ -92,8 +77,18 @@ public class Solver
 
     public int Part1()
     {
-        var totalSize = GetDirectorySize(_root, "/");
+        var totalSize = GetDirectorySize(_fs.Root, "/");
         return _directorySizes.Where(x => x.Size <= 100000).Sum(x => x.Size);
+    }
+
+    public int Part2()
+    {
+        var spaceUsed = GetDirectorySize(_fs.Root, "/");
+        var spaceToFree = spaceUsed - (TOTAL_SPACE - SPACE_NEEDED);
+        return _directorySizes
+            .OrderBy(x => x.Size)
+            .First(x => x.Size >= spaceToFree)
+            .Size;
     }
 
     private int GetDirectorySize(TreeDirectory dir, string path)
