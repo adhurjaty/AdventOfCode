@@ -15,9 +15,11 @@ public class Filesystem
     {
         if (name == "..")
             CurrentDirectory = CurrentDirectory.Parent;
+        else if (name == "/")
+            CurrentDirectory = Root;
         else
             CurrentDirectory = CurrentDirectory.Directories.First(x => x.Name == name);
-            
+
         if (CurrentDirectory is null) throw new Exception($"null {name} directory");
     }
 
