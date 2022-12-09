@@ -1,5 +1,3 @@
-using AdventOfCode.Util;
-
 namespace AdventOfCode.Day6;
 
 public class Solver

@@ -4,27 +4,6 @@ using static LanguageExt.Prelude;
 
 namespace AdventOfCode.Day7;
 
-public abstract class LineParser
-{
-    protected readonly string _pattern;
-    protected readonly Filesystem _fs;
-
-    public LineParser(Filesystem fs, string pattern)
-    {
-        _fs = fs;
-        _pattern = pattern;
-    }
-
-    protected virtual Option<Match> GetMatch(string command)
-    {
-        var match = Regex.Match(command, _pattern);
-        if (!match.Success)
-            return None;
-
-        return Some(match);
-    }
-}
-
 public interface ICommandParser
 {
     Option<string> Execute(string command, IEnumerator<string> e);
@@ -32,7 +11,11 @@ public interface ICommandParser
 
 public class CdCommand : LineParser, ICommandParser
 {
-    public CdCommand(Filesystem fs) : base(fs, @"\$ cd (.*)") { }
+    private readonly Filesystem _fs;
+    public CdCommand(Filesystem fs) : base(@"\$ cd (.*)")
+    { 
+        _fs = fs;
+    }
 
     public Option<string> Execute(string command, IEnumerator<string> e)
     {
@@ -48,10 +31,12 @@ public class CdCommand : LineParser, ICommandParser
 
 public class LsCommand : LineParser, ICommandParser
 {
+    private readonly Filesystem _fs;
     private readonly List<IOutputParser> _parserStrategies;
 
-    public LsCommand(Filesystem fs) : base(fs, @"\$ ls") 
+    public LsCommand(Filesystem fs) : base(@"\$ ls") 
     { 
+        _fs = fs;
         _parserStrategies = new List<IOutputParser>()
         {
             new FileOutput(fs),
@@ -82,9 +67,12 @@ public interface IOutputParser
 
 public class DirectoryOutput : LineParser, IOutputParser
 {
-    private const string PATTERN = @"dir (.*)";
+    private readonly Filesystem _fs;
 
-    public DirectoryOutput(Filesystem fs) : base(fs, @"dir (.*)") { }
+    public DirectoryOutput(Filesystem fs) : base(@"dir (.*)") 
+    {
+        _fs = fs;
+    }
 
     public bool Execute(string command)
     {
@@ -100,7 +88,11 @@ public class DirectoryOutput : LineParser, IOutputParser
 
 public class FileOutput : LineParser, IOutputParser
 {
-    public FileOutput(Filesystem fs) : base(fs, @"(\d+) (.*)") { }
+    private readonly Filesystem _fs;
+    public FileOutput(Filesystem fs) : base(@"(\d+) (.*)")
+    {
+        _fs = fs;
+    }
 
     public bool Execute(string command)
     {

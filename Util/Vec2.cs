@@ -1,4 +1,4 @@
-namespace AdventOfCode.Day8;
+namespace AdventOfCode.Util;
 
 public record Vec2(int X, int Y)
 {
