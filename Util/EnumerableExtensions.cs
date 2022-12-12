@@ -1,3 +1,6 @@
+using LanguageExt;
+using static LanguageExt.Prelude;
+
 namespace AdventOfCode.Util;
 
 public static class EnumerableExtensions
@@ -73,5 +76,13 @@ public static class EnumerableExtensions
     {
         return lst.Aggregate((IEnumerable<T>)new[] { seed },
             (newLst, x) => newLst.Concat(new[] { fn(newLst.Last(), x) }));
+    }
+
+    public static Option<T> FirstOption<T>(this IEnumerable<T> lst, Func<T, bool> pred)
+    {
+        var result = lst.FirstOrDefault(pred);
+        if (result.IsDefault())
+            return None;
+        return Some(result!);
     }
 }
