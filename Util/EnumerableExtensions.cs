@@ -67,4 +67,11 @@ public static class EnumerableExtensions
             yield return outArr;
         }
     }
+
+    public static IEnumerable<T> SelectWithPrevResult<T>(this IEnumerable<T> lst,
+        Func<T, T, T> fn, T seed)
+    {
+        return lst.Aggregate((IEnumerable<T>)new[] { seed },
+            (newLst, x) => newLst.Concat(new[] { fn(newLst.Last(), x) }));
+    }
 }
