@@ -3,34 +3,98 @@ namespace AdventOfCode.Day9;
 public class RopeState
 {
     private Vec2 _hPos = new Vec2(0, 0);
-    private Vec2 _tPos = new Vec2(0, 0);
+    private List<Vec2> _tails;
     private List<Vec2> _visited = new() { new Vec2(0, 0) };
+
+    private readonly List<MovePosition> _positionInstructions;
+
+    public RopeState(int numTails = 1)
+    {
+        _tails = Enumerable.Range(0, numTails).Select(_ => new Vec2(0, 0)).ToList();
+        _positionInstructions = new List<MovePosition>()
+        {
+            new MovePosition(new Vec2(0, -2), Move.Down),
+            new MovePosition(new Vec2(0, 2), Move.Up),
+            new MovePosition(new Vec2(-2, 0), Move.Right),
+            new MovePosition(new Vec2(2, 0), Move.Left),
+        }.Concat(new[] 
+        { 
+            new Vec2(1, -2),
+            new Vec2(2, -1),
+            new Vec2(2, -2)
+        }.Select(v => new MovePosition(v, x => Move.Left(Move.Down(x)))))
+        .Concat(new[] 
+        { 
+            new Vec2(1, 2),
+            new Vec2(2, 1),
+            new Vec2(2, 2)
+        }.Select(v => new MovePosition(v, x => Move.Left(Move.Up(x)))))
+        .Concat(new[] 
+        { 
+            new Vec2(-1, -2),
+            new Vec2(-2, -1),
+            new Vec2(-2, -2)
+        }.Select(v => new MovePosition(v, x => Move.Right(Move.Down(x)))))
+        .Concat(new[] 
+        { 
+            new Vec2(-1, 2),
+            new Vec2(-2, 1),
+            new Vec2(-2, 2)
+        }.Select(v => new MovePosition(v, x => Move.Right(Move.Up(x)))))
+        .ToList();
+    }
 
     public void MoveHead(Instruction instruction)
     {
-        _hPos = instruction.Execute(_hPos, instruction.Distance);
-        var tDistance = DistanceOutside(_hPos, _tPos);
-
-        _visited.AddRange(Enumerable.Range(1, tDistance).Select(d => instruction.Execute(_tPos, d)));
-        _tPos = _visited.Last();
+        for (int _ = 0; _ < instruction.Distance; _++)
+        {
+            _hPos = instruction.MoveFn(_hPos);
+            MoveKnot(_hPos, 0);
+        }
     }
 
-    private int DistanceOutside(Vec2 origin, Vec2 target, int distance = 1)
+    private void MoveKnot(Vec2 prevPos, int tailIndex)
     {
-        return new[]
+        if (tailIndex == _tails.Count)
         {
-            origin.X - target.X,
-            target.X - origin.X,
-            origin.Y - target.Y,
-            target.Y - origin.Y
+            _visited.Add(prevPos);
+            return;
         }
-        .Select(d => d - distance)
-        .Select(d => Math.Max(0, d))
-        .Max();
+
+        var newTail = _positionInstructions
+            .FirstOrDefault(i => i.IsAtPosition(prevPos, _tails[tailIndex]))
+            ?.Move(_tails[tailIndex]);
+        if (newTail is not null)
+        {
+            _tails[tailIndex] = newTail;
+            MoveKnot(newTail, tailIndex + 1);
+        }
     }
 
     public int TailVisited()
     {
         return _visited.Distinct().Count();
+    }
+}
+
+public class MovePosition
+{
+    private readonly Vec2 _vecDiff;
+
+    public Func<Vec2, Vec2> Move { get; set; }
+
+    public MovePosition(Vec2 vecDiff, Func<Vec2, Vec2> move)
+    {
+        _vecDiff = vecDiff;
+        Move = move;
+    }
+
+    public bool IsAtPosition(Vec2 src, Vec2 dest)
+    {
+        return src with 
+        { 
+            X = src.X + _vecDiff.X, 
+            Y = src.Y + _vecDiff.Y
+        } == dest;
     }
 }
