@@ -5,10 +5,10 @@ namespace AdventOfCode.Day10;
 public class Solver
 {
     private readonly IEnumerable<string> _lines = File.ReadLines(@"./Day10/input.txt");
-    private readonly int[] _significantCycles = new[] { 20, 60, 100, 140, 180, 220 };
 
     public int Part1()
     {
+        var significantCycles = new[] { 20, 60, 100, 140, 180, 220 };
         return _lines
             .Select(ToInstruction)
             .SelectWithPrevResult((state, instruction) => state with
@@ -17,10 +17,34 @@ public class Solver
                 Register = state.Register + instruction.Register
             }, new Instruction(0, 1))
             .SlidingBuffer(2)
-            .Select(steps =>_significantCycles
-                .FirstOption(cycle => steps[0].Cycle < cycle && steps[1].Cycle >= cycle)
-                .Match(sig => sig * steps[0].Register, () => 0))
+            .Select(x => x.ToTuple())
+            .Select(steps => significantCycles
+                .FirstOption(cycle => steps.Item1.Cycle < cycle && steps.Item2.Cycle >= cycle)
+                .Match(sig => sig * steps.Item1.Register, () => 0))
             .Sum();
+    }
+
+    public string Part2()
+    {
+        return string.Join("\n", _lines
+            .Select(ToInstruction)
+            .SelectWithPrevResult((state, instruction) => state with
+            {
+                Cycle = state.Cycle + instruction.Cycle,
+                Register = state.Register + instruction.Register
+            }, new Instruction(0, 1))
+            .SlidingBuffer(2)
+            .Select(x => x.ToTuple())
+            .SelectMany(states =>
+            {
+                var (start, end) = states;
+                var stepDuration = end.Cycle - start.Cycle;
+
+                return Enumerable.Range(start.Cycle, stepDuration)
+                    .Select(i => GetMark(start.Register % 40, (start.Cycle + i) % 40));
+            })
+            .Chunk(40)
+            .Select(x => string.Join("", x)));
     }
 
     private Instruction ToInstruction(string command)
@@ -33,11 +57,11 @@ public class Solver
         throw new Exception("Invalid command");
     }
 
-    private bool IsSignificant(Instruction[] steps, IEnumerable<int> significantCycles)
+    private string GetMark(int register, int cycle)
     {
-        return significantCycles
-            .Where(cycle => steps[0].Cycle < cycle && steps[1].Cycle >= cycle)
-            .Any();
+        return cycle >= register - 1 && cycle <= register + 1
+            ? "#"
+            : ".";
     }
 }
 
