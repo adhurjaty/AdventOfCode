@@ -41,7 +41,7 @@ public class Solver
                 var stepDuration = end.Cycle - start.Cycle;
 
                 return Enumerable.Range(start.Cycle, stepDuration)
-                    .Select(i => GetMark(start.Register % 40, (start.Cycle + i) % 40));
+                    .Select(cycle => GetMark(start.Register, cycle % 40));
             })
             .Chunk(40)
             .Select(x => string.Join("", x)));
@@ -61,7 +61,7 @@ public class Solver
     {
         return cycle >= register - 1 && cycle <= register + 1
             ? "#"
-            : ".";
+            : " ";
     }
 }
 
